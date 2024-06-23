@@ -1,0 +1,5 @@
+PS E:\1 Project\Learn Django> django-admin startproject site1
+PS E:\1 Project\Learn Django> cd site1
+PS E:\1 Project\Learn Django\site1> python [manage.py](http://manage.py/) migrate
+
+python [manage.py](http://manage.py/) runserver 8888
