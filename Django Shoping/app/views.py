@@ -7,6 +7,23 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 # Create your views here.
 
+def search(request):
+    if request.method == 'POST':
+        searched = request.POST.get('searched')
+        keys = Product.objects.filter(name__icontains = searched)
+
+    if (request.user.is_authenticated):
+        customer = request.user
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+        items = order.orderitem_set.all()
+        cartItems = order.get_cart_items
+    else :
+        items = []
+        order = {'get_cart_total':0, 'get_cart_items':0}
+        cartItems = order['get_cart_items']
+    products = Product.objects.all()
+
+    return render(request, 'app/search.html',{'products': products, 'cartItems': cartItems, 'keys': keys , 'searched': searched})
 def register(request):
     form = CreateUserForm()
     context = {'form' : form}
@@ -15,6 +32,7 @@ def register(request):
         if form.is_valid():
             form.save()
             context = {'form' : form, 'message': 'User created successfully'}
+            return redirect('login')
         else:
             context = {'form' : form, 'message': 'User creation failed'}
     return render(request, 'app/register.html', context)
@@ -42,8 +60,7 @@ def logoutPage(request):
 
 def home(request):
     if (request.user.is_authenticated):
-        customer = request.user.customer
-        # print(customer)
+        customer = request.user
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         items = order.orderitem_set.all()
         cartItems = order.get_cart_items
@@ -60,7 +77,7 @@ def home(request):
 
 def cart(request):
     if (request.user.is_authenticated):
-        customer = request.user.customer
+        customer = request.user
         # print(customer)
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         items = order.orderitem_set.all()
@@ -75,7 +92,7 @@ def cart(request):
 
 def checkout(request):
     if (request.user.is_authenticated):
-        customer = request.user.customer
+        customer = request.user
         # print(customer)
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         items = order.orderitem_set.all()
@@ -91,7 +108,7 @@ def updateItem(request):
     data =  json.loads(request.body)
     productId = data['productId']
     action = data['action']
-    customer = request.user.customer
+    customer = request.user
     product = Product.objects.get(id = productId)
     order, created = Order.objects.get_or_create(customer=customer, complete=False)
     orderItem, created = OrderItem.objects.get_or_create(order = order, product=product)

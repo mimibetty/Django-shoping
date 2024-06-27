@@ -51,7 +51,9 @@
                               <button  type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg">Login</button>
                             </div>
                             <p class="text-center h6 fw-bold mb-5 mx-1 mx-md-4 mt-4">You don't have a account <a href = {% url "register" %}>Register </a></p> 
-
+                            {% for message in messages  %}                             
+                            <p id = "message" class="text-center h6 fw-bold mb-5 mx-1 mx-md-4 mt-4"> {{message}} </a></p> 
+                            {% endfor %}
                           </form>
           
                         </div>
