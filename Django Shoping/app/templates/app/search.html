@@ -23,7 +23,7 @@
               <h6><strong>{{product.name}}</strong></h6>
               <hr>
               <button data-product={{product.id}} data-action ="add" class="btn btn-outline-secondary add-btn update-cart">Add to cart</button>
-              <a class="btn btn-outline-success" href="#">View</a>
+              <a class="btn btn-outline-success" href="{% url "detail" %}?id={{product.id}}">View</a>
               <h3 style="display: inline-block; float: right"><strong>${{product.price | floatformat:2}}</strong></h3>
             </div>
           </div>
@@ -35,3 +35,120 @@
 
     </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} 
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail</title>
+</head>
+<body>
+    <h1>Product Detail</h1>
+    <div id="product-detail">
+        <!-- Thông tin sản phẩm sẽ được hiển thị ở đây -->
+    </div>
+    
+    <h2>Update Product</h2>
+    <form id="update-product-form">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="price">Price:</label><br>
+        <input type="number" id="price" name="price"><br>
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description"></textarea><br><br>
+        <button type="submit">Update Product</button>
+    </form>
+
+    <script>
+        const productId = 1; // Giả sử chúng ta có ID sản phẩm là 1
+
+        async function getProductDetail(productId) {
+            try {
+                const response = await fetch(`/api/products/${productId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Product not found');
+                }
+
+                const product = await response.json();
+                document.getElementById('product-detail').innerHTML = `
+                    <p>ID: ${product.id}</p>
+                    <p>Name: ${product.name}</p>
+                    <p>Price: ${product.price}</p>
+                    <p>Description: ${product.description}</p>
+                `;
+
+                // Điền thông tin vào form
+                document.getElementById('name').value = product.name;
+                document.getElementById('price').value = product.price;
+                document.getElementById('description').value = product.description;
+            } catch (error) {
+                console.error('Error:', error.message);
+                document.getElementById('product-detail').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        async function updateProductDetail(productId, updatedData) {
+            try {
+                const response = await fetch(`/api/products/${productId}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to update product');
+                }
+
+                const updatedProduct = await response.json();
+                console.log('Updated Product:', updatedProduct);
+                alert('Product updated successfully');
+                getProductDetail(productId); // Làm mới thông tin sản phẩm sau khi cập nhật
+            } catch (error) {
+                console.error('Error:', error.message);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        document.getElementById('update-product-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Ngăn chặn form submit mặc định
+            const updatedData = {
+                name: document.getElementById('name').value,
+                price: document.getElementById('price').value,
+                description: document.getElementById('description').value
+            };
+            updateProductDetail(productId, updatedData);
+        });
+
+        // Gọi hàm để lấy thông tin sản phẩm khi tải trang
+        getProductDetail(productId);
+    </script>
+</body>
+</html> {% endcomment %}

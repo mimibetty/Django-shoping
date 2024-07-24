@@ -1,10 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import *
 import json
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+
+from django.views.decorators.csrf import csrf_exempt
+
 # Create your views here.
 
 def category(request):
@@ -81,9 +84,14 @@ def home(request):
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         items = order.orderitem_set.all()
         cartItems = order.get_cart_items
+     
         # show status login
         user_not_login = "hidden"
         user_login = "show"
+        print(f"{order} orderrrr")
+        print(f"{created} createeee")
+
+
     else :
         items = []
         order = {'get_cart_total':0, 'get_cart_items':0}
@@ -97,6 +105,7 @@ def home(request):
     # print(products)  # Thêm dòng này để kiểm tra xem products có dữ liệu hay không
     context = {'products': products, 'cartItems': cartItems, 'user_not_login': user_not_login, 
                'user_login': user_login, 'categories': categories}
+    print(context)
     return render(request, 'app/home.html', context)
 
 
@@ -165,7 +174,7 @@ def checkout(request):
 def updateItem(request):
     data =  json.loads(request.body)
     productId = data['productId']
-    action = data['action']
+    action = data['action']             
     customer = request.user
     product = Product.objects.get(id = productId)
     order, created = Order.objects.get_or_create(customer=customer, complete=False)
@@ -178,3 +187,64 @@ def updateItem(request):
     if orderItem.quantity <= 0:
         orderItem.delete()
     return JsonResponse("added" , safe= False)
+
+
+def update_product_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    categories = Category.objects.all()
+    print("updae_product_view")
+    print(product)
+    print(categories)
+    
+    return render(request, 'app/update_product.html', {'product': product, 'categories': categories})
+
+@csrf_exempt
+def update_product(request, pk):
+    print("request.method", pk)
+
+    if request.method == 'PUT':
+        try:
+            product = Product.objects.get(pk=pk)
+        except Product.DoesNotExist:
+            return JsonResponse({'error': 'Product not found'}, status=404)
+
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        product.name = data.get('name', product.name)
+        product.price = data.get('price', product.price)
+        product.digital = data.get('digital', product.digital)
+        product.detail = data.get('detail', product.detail)
+
+        if 'category' in data:
+            product.category.set(data['category'])
+
+        product.save()
+
+        return JsonResponse({
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'digital': product.digital,
+            'detail': product.detail,
+            'category': [cat.id for cat in product.category.all()]
+        })
+
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+
+def add_product_page(request):
+    return render(request, 'app/create_product.html')
+
+@csrf_exempt
+def create_product(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        categories_data = data.pop('category', [])
+        product = Product.objects.create(**data)
+        for category_id in categories_data:
+            category = Category.objects.get(id=category_id)
+            product.category.add(category)
+        return JsonResponse({'message': 'Product created successfully!', 'product_id': product.id})

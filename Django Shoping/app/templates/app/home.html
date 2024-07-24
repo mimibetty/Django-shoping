@@ -57,21 +57,29 @@
 
 {% block main_content %}
 
-<div class="row" style = "width: 100%">
+<div class="row" style="width: 100%">
+    <!-- Nút để chuyển hướng đến trang thêm sản phẩm -->
+    <div class="row">
+      <div class="col-lg-12 text-center">
+          <a class="btn btn-primary" href="{% url 'add_product_page' %}">Add New Product</a>
+      </div>
+  </div>
+
+
   {% for product in products %}
   <div class="col-lg-4">
-    <img class="thumbnail" src="{{product.imageURL}}">
-    <div class="box-element product">
-      <h6><strong>{{product.name}}</strong></h6>
-      <hr>
-      <button data-product={{product.id}} data-action ="add" class="btn btn-outline-secondary add-btn update-cart">Add to cart</button>
-      <a class="btn btn-outline-success" href="{% url "detail" %}?id={{product.id}}">View</a>
-      <h3 style="display: inline-block; float: right"><strong>${{product.price | floatformat:2}}</strong></h3>
-    </div>
+      <img class="thumbnail" src="{{ product.imageURL }}">
+      <div class="box-element product">
+          <h6><strong>{{ product.name }}</strong></h6>
+          <hr>
+          <button data-product="{{ product.id }}" data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to cart</button>
+          <a class="btn btn-outline-success" href="{% url 'detail' %}?id={{ product.id }}">View</a>
+          <a class="btn btn-outline-warning" href="{% url 'update_product_view' product.id %}">Update</a>
+          <h3 style="display: inline-block; float: right"><strong>${{ product.price | floatformat:2 }}</strong></h3>
+      </div>
   </div>
   {% endfor %}
 </div>
-
 
 
 <br/> <br/> <br/> <br/>  
